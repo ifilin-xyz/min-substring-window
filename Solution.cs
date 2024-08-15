@@ -19,6 +19,17 @@ public class Solution
         Both strings will only contains lowercase alphabetic characters.
      */
 
+    // POSSIBLE USAGE:
+    // text - searching, summarize/short,
+    // NLP - named entity recognition, topic modeling
+    // data mining - kind of problems to find segments with keywords
+    // logs - find behavioral patterns
+    // DNA - find segment with markers
+    // inventory management - find a set of resources that meet all requirements
+    
+    // 2 pointer substring
+    // time O(N), foreach on query and scan source - k, moving cursor 2n-k times, k+2n-k = 2n => O(N)
+    // space O(1), a map is int[128], fixed space (dictionary was hard, found "bitmap" much easy to implement, and space more efficient)
     public string MinWindowSubstring(string[] strArr)
     {
         // constraints:
@@ -33,18 +44,24 @@ public class Solution
         string source = strArr[0];
         char[] query = strArr[1].ToCharArray();
         int[] map = new int[128]; // ASCII has 128 symbols, char to int
+        
         foreach (char c in query)
             map[c]++;
 
         // right, scan 0 -> ^0, decrease map (find all intersections), return last intersection index
         // left, scan 0 -> ^0, increase map, stop when all map's values are 0 and the next one is intersection
 
+        // how many intersections we should find
+        // decreasing is better, then we compare with 0 rather query.Length, should be good for performance, but not sure if it's utilizable
         int finder = query.Length;
+        // default window, whole source, worst case
         int left = 0;
         int right = source.Length;
+        
+        // scan source, from left to right, 2 pointers
         int l = 0;
         int r = 0;
-        
+        // right scan, moving right border
         while (r < source.Length)
         {
             // found right intersection
@@ -54,19 +71,28 @@ public class Solution
             map[source[r]]--; // not intersections would be negative
             r++; // right scan
 
-            // found required intersections
+            // found all required intersections
+            // left scan, moving left border, memo min window
             while (finder == 0)
             {
+                // found min window
                 if (r - l < right - left) {
                     // memo window
                     left = l;
-                    right = r; 
+                    right = r;
+
+                    // short exit, found min possible window (first if they are many)
+                    // should be good memory hit, as query.Length in cached all the time 
+                    // quite specific case, might be not relevant 
+                    // if (r - l == query.Length)
+                    //     return source.Substring(left, right - left);
                 }
                 
                 map[source[l]]++; // restore origin map values
                 
+                // found left intersection, which will left the scan frame
                 if (map[source[l]] > 0)
-                    finder++; // found left intersection, increase finder.
+                    finder++; // increase finder (increase intersections to find), leads to leaving "left scan" while
 
                 l++; // left scan
             }
